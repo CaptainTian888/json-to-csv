@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Az Captain Json to csv</title>
+  <link rel="icon" type="image/png" href="https://imgbed.captainzeqi.com/file/1758348585439_黑白路飞透明背景.png">
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#06b6d4;--accent-2:#7c3aed}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial; margin:0; min-height:100vh; background:linear-gradient(180deg,#071124 0%, #081227 60%); color:#e6eef6; display:flex; align-items:center; justify-content:center; padding:28px}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02)); border:1px solid rgba(255,255,255,0.04); padding:18px; border-radius:12px; box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+
+    .drop{border:2px dashed rgba(255,255,255,0.04); padding:28px; border-radius:10px; display:flex;align-items:center;justify-content:space-between; gap:12px}
+    .drop.drag{background:linear-gradient(90deg, rgba(6,182,212,0.06), rgba(124,58,237,0.04)); border-color:rgba(6,182,212,0.28)}
+    .left{display:flex;align-items:center;gap:12px}
+    .fileinfo{font-size:13px;color:var(--muted)}
+    .controls{display:flex;gap:10px;align-items:center}
+    button{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#04212a;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:500}
+    .result{margin-top:14px;display:flex;gap:12px;align-items:center}
+    .stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;font-size:14px}
+    .download{display:inline-flex;align-items:center;gap:8px}
+
+    table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+    thead th{background:rgba(0,0,0,0.2);padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    tbody td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.02);color:#dbe8f2}
+    .small{font-size:12px;color:var(--muted)}
+
+    footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+    .copyright{margin-top:8px;font-size:12px;color:var(--muted);text-align:center}
+    @media (max-width:720px){.drop{flex-direction:column;align-items:stretch}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="https://imgbed.captainzeqi.com/file/1758348585439_黑白路飞透明背景.png" alt="logo" style="width:42px;height:42px;border-radius:8px;object-fit:contain;">
+      <div>
+        <h1>Az Captain Json to csv</h1>
+        <p class="lead">上传你的导航 JSON（像你之前提供的结构），会自动提取网站并生成 CSV（包含：一级分类、二级分类、三级分类、网站名称、网站地址、网站描述、网站图标地址）。</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <div id="drop" class="drop">
+        <div class="left">
+          <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.02));display:flex;align-items:center;justify-content:center;font-weight:700">JSON</div>
+          <div>
+            <div><strong id="filename">未选择文件</strong></div>
+            <div class="fileinfo" id="filesize">支持 .json 文件（大小不限）</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <input id="fileinput" type="file" accept="application/json" style="display:none" />
+          <button id="choose">选择文件</button>
+          <button id="convert" class="ghost" disabled>生成 CSV</button>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="stat">已提取网站数： <strong id="count">0</strong></div>
+        <div class="stat">生成的文件名： <span id="outname" class="small">-</span></div>
+        <div class="download" id="downloadWrap" style="display:none">
+          <a id="downloadLink" href="#" download style="text-decoration:none"><button>下载 CSV</button></a>
+          <button id="preview" class="ghost">预览（前 50 条）</button>
+        </div>
+      </div>
+
+      <div id="previewArea" style="display:none;margin-top:12px"></div>
+
+      <footer>
+        提示：如果 CSV 在 Excel 打开出现乱码，使用 "UTF-8 带 BOM"（本工具已自动处理）。
+        <div class="copyright">© 2025 Az Captain</div>
+      </footer>
+    </section>
+  </div>
+</body>
+</html>
