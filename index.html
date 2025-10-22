@@ -59,7 +59,7 @@
     footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
     .copyright{margin-top:8px;font-size:12px;color:var(--muted);text-align:center}
 
-    /* 全屏浮层样式 */
+    /* 全屏浮层 */
     .overlay {
       position: fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(4,6,15,0.97); backdrop-filter:blur(8px);
@@ -99,6 +99,8 @@
       border-radius:3px;
     }
   </style>
+  <!-- ✅ 引入 SheetJS 库（用于生成 Excel） -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -106,7 +108,7 @@
       <img src="https://imgbed.captainzeqi.com/file/1758348585439_黑白路飞透明背景.png" alt="logo" style="width:42px;height:42px;border-radius:8px;object-fit:contain;">
       <div>
         <h1>Az Captain Json to CSV</h1>
-        <p class="lead">将 JSON 文件直接拖入下方区域，系统将自动提取网站信息并生成 CSV 文件。</p>
+        <p class="lead">将 JSON 文件直接拖入下方区域，系统将自动提取网站信息并生成 CSV / Excel 文件。</p>
       </div>
     </header>
 
@@ -121,6 +123,8 @@
         <div class="stat">生成的文件名： <span id="outname">-</span></div>
         <div class="download" id="downloadWrap" style="display:none">
           <a id="downloadLink" href="#" download style="text-decoration:none"><button>下载 CSV</button></a>
+          <!-- ✅ 新增 Excel 下载按钮 -->
+          <button id="downloadExcel">下载 Excel</button>
           <button id="fullPreview">全屏预览全部</button>
         </div>
       </div>
@@ -217,6 +221,7 @@
     const downloadLink = document.getElementById('downloadLink');
     const outnameEl = document.getElementById('outname');
     const fullPreviewBtn = document.getElementById('fullPreview');
+    const downloadExcelBtn = document.getElementById('downloadExcel'); // ✅ 新增按钮引用
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlayContent = document.getElementById('overlayContent');
@@ -225,6 +230,7 @@
 
     let lastCsvBlobUrl = null;
     let lastRows = [];
+    let lastFilename = "output.csv";
 
     function processFile(file){
       const reader = new FileReader();
@@ -238,6 +244,7 @@
           if (lastCsvBlobUrl){ URL.revokeObjectURL(lastCsvBlobUrl); }
           lastCsvBlobUrl = URL.createObjectURL(blob);
           const outname = file.name.replace(/\.json$/i,'')+'.csv';
+          lastFilename = outname;
           downloadLink.href = lastCsvBlobUrl;
           downloadLink.download = outname;
           outnameEl.textContent = outname;
@@ -256,11 +263,29 @@
       if (f) processFile(f);
     });
 
-    fullPreviewBtn.addEventListener('click', ()=>{
-      overlay.style.display = 'flex';
-      renderTable(lastRows);
+    // ✅ 下载 Excel 功能
+    downloadExcelBtn.addEventListener('click', ()=>{
+      if (!lastRows.length) return alert('请先导入 JSON 文件！');
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(lastRows);
+
+      // 自动调整列宽
+      const headers = Object.keys(lastRows[0]);
+      const colWidths = headers.map(h=>{
+        const maxLen = Math.max(
+          h.length,
+          ...lastRows.map(r=>String(r[h]||'').length)
+        );
+        return { wch: Math.min(maxLen + 4, 60) }; // 限制最大宽度 60
+      });
+      ws['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, '数据');
+      const outname = lastFilename.replace(/\.csv$/i,'.xlsx');
+      XLSX.writeFile(wb, outname);
     });
 
+    fullPreviewBtn.addEventListener('click', ()=>{ overlay.style.display = 'flex'; renderTable(lastRows); });
     closeOverlay.addEventListener('click', ()=> overlay.style.display = 'none');
 
     function highlightText(text, query){
